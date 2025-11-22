@@ -9,12 +9,14 @@
     "test": "bash scripts/test.sh",
     "test:watch": "bunx mocha test/**/*.test.ts --watch",
     "test:coverage": "bunx hardhat coverage",
-    "deploy:local": "bunx hardhat ignition deploy ignition/modules/Deploy.ts --network localhost",
+    "deploy:local": "bun run scripts/deploy.ts",
     "node": "bunx --bun hardhat node",
-    "clean": "bunx hardhat clean && rm -rf cache artifacts typechain-types",
+    "clean": "bunx hardhat clean && rm -rf cache artifacts typechain-types deployments",
     "export": "bun run scripts/export-contracts.ts"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.5",
+    "@nomicfoundation/hardhat-verify": "^3.0.7",
     "@nomicfoundation/hardhat-viem": "^2.0.0",
     "@types/chai": "^4.3.0",
     "@types/chai-as-promised": "^8.0.2",
