@@ -6,11 +6,11 @@
   "private": true,
   "scripts": {
     "compile": "bunx --bun hardhat compile",
-    "test": "bunx --bun hardhat test",
-    "test:node": "bunx hardhat test",
+    "test": "bash scripts/test.sh",
+    "test:watch": "bunx mocha test/**/*.test.ts --watch",
     "test:coverage": "bunx hardhat coverage",
     "deploy:local": "bunx hardhat ignition deploy ignition/modules/Deploy.ts --network localhost",
-    "node": "bunx hardhat node",
+    "node": "bunx --bun hardhat node",
     "clean": "bunx hardhat clean && rm -rf cache artifacts typechain-types",
     "export": "bun run scripts/export-contracts.ts"
   },
