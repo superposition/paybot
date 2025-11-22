@@ -1,0 +1,96 @@
+.app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.app-header {
+  margin-bottom: 3rem;
+}
+
+.app-header h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+
+.app-header p {
+  color: #888;
+  font-size: 1.2em;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+
+.card {
+  padding: 2em;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  max-width: 600px;
+}
+
+.card button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #646cff;
+  color: white;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  margin-bottom: 1rem;
+}
+
+.card button:hover {
+  border-color: #646cff;
+  background-color: #535bf2;
+}
+
+.card button:focus,
+.card button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+.info {
+  background-color: #1a1a1a;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+}
+
+.info h2 {
+  margin-bottom: 1rem;
+  color: #646cff;
+}
+
+.info ul {
+  list-style: none;
+  text-align: left;
+}
+
+.info li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #333;
+}
+
+.info li:last-child {
+  border-bottom: none;
+}
+
+.info strong {
+  color: #888;
+}
+
+.app-footer {
+  margin-top: 3rem;
+  color: #666;
+  font-size: 0.9em;
+}
