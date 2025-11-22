@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/config";
-// Note: Plugin imports removed for Bun compatibility
-// Plugins will be loaded dynamically when needed
+// Using viem directly without Hardhat plugins for Bun compatibility
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -35,9 +34,8 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     artifacts: "./artifacts",
   },
-  typechain: {
-    outDir: "typechain-types",
-    target: "ethers-v6",
+  mocha: {
+    timeout: 60000,
   },
 };
 

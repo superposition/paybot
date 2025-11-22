@@ -1,0 +1,6 @@
+{
+  "spec": "test/**/*.test.ts",
+  "require": ["chai/register-expect"],
+  "timeout": 60000,
+  "node-option": ["import=tsx"]
+}
