@@ -7,5 +7,11 @@
 
 export const X402_VERSION = "1.0.0";
 
-// Main exports will be added as we implement the library
+// Core client
+export { X402Client } from "./client";
+
+// Types
 export * from "./types";
+
+// ABIs
+export { ESCROW_ABI, TOKEN_ABI } from "./abis";
