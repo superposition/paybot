@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@paybot/x402": "workspace:*",
@@ -35,6 +37,14 @@
     "tailwindcss": "^3.4.17",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "@storybook/addon-essentials": "^8.5.1",
+    "@storybook/addon-interactions": "^8.5.1",
+    "@storybook/addon-links": "^8.5.1",
+    "@storybook/blocks": "^8.5.1",
+    "@storybook/react": "^8.5.1",
+    "@storybook/react-vite": "^8.5.1",
+    "@storybook/test": "^8.5.1",
+    "storybook": "^8.5.1"
   }
 }
