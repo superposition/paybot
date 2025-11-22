@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+*.log
+*.tsbuildinfo
+
+# Blockchain / Hardhat
+broadcast/
+cache/
+artifacts/
+typechain-types/
+deployments/
+ignition/deployments/
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.iml
+
+# Turborepo
+.turbo/
+
+# Testing
+.storybook-static/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Local docker volumes
+docker-volumes/
