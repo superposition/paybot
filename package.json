@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Component-driven React web app with X402 micropayments for robot control",
   "private": true,
+  "packageManager": "bun@1.3.1",
   "workspaces": [
     "apps/*",
     "packages/*"
