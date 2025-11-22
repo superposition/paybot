@@ -1,0 +1,22 @@
+{
+  "name": "@paybot/x402-facilitator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/server.ts",
+    "start": "bun src/server.ts",
+    "build": "bun build src/server.ts --outdir=dist --target=bun",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@paybot/x402": "workspace:*",
+    "hono": "^4.0.0",
+    "viem": "^2.21.53"
+  },
+  "devDependencies": {
+    "@paybot/tsconfig": "workspace:*",
+    "@types/bun": "^1.1.0",
+    "typescript": "^5.6.3"
+  }
+}
