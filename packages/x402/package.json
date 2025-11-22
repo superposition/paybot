@@ -1,0 +1,30 @@
+{
+  "name": "@paybot/x402",
+  "version": "1.0.0",
+  "description": "X402 payment protocol library - config-driven blockchain payments",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "^2.0.0"
+  },
+  "devDependencies": {
+    "@paybot/tsconfig": "workspace:*",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  }
+}
