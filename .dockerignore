@@ -1,0 +1,52 @@
+# Node modules
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+**/dist
+build
+**/build
+.next
+**/.next
+
+# Cache directories
+.turbo
+**/.turbo
+.cache
+**/.cache
+
+# Development files
+.git
+.gitignore
+*.md
+.env.example
+.vscode
+.idea
+
+# Test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+**/__tests__
+**/test
+coverage
+
+# Storybook
+.storybook
+**/*.stories.tsx
+**/*.stories.ts
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
