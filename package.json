@@ -12,6 +12,8 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
+    "test:e2e": "./e2e-test.sh",
+    "test:e2e:dev": "./e2e-test.sh --no-cleanup",
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "lint": "turbo run lint"

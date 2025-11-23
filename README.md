@@ -124,6 +124,12 @@ bun run build
 # Run all tests
 bun run test
 
+# Run E2E tests (headless)
+bun run test:e2e
+
+# Run E2E tests (keep services running for debugging)
+bun run test:e2e:dev
+
 # Clean all build artifacts
 bun run clean
 
@@ -397,6 +403,62 @@ graph TB
 ### 📝 Documentation (In Progress)
 - [ ] Mermaid architecture diagrams
 - [ ] Complete technical documentation
+
+## 🧪 Testing
+
+### Unit Tests
+
+```bash
+# Run all unit tests
+bun run test
+
+# Run contract tests only
+cd packages/contracts
+bun run test
+```
+
+### E2E Tests (Headless)
+
+The E2E test suite runs a complete end-to-end test of the entire stack:
+
+```bash
+# Run full E2E test (auto cleanup)
+bun run test:e2e
+
+# Run E2E test and keep services running
+bun run test:e2e:dev
+```
+
+**What it tests:**
+- ✅ Docker Compose service orchestration
+- ✅ Hardhat blockchain node RPC
+- ✅ X402 facilitator health and endpoints
+- ✅ Resource server health and endpoints
+- ✅ Web application availability
+- ✅ Smart contract compilation and tests (69 tests)
+- ✅ Service health checks and dependencies
+
+**Output:**
+- Color-coded test results
+- Service status report
+- Pass/fail summary
+- Automatic cleanup (unless --no-cleanup flag)
+
+### Manual Testing
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Check service health
+docker-compose ps
+
+# View logs
+docker-compose logs -f [service-name]
+
+# Stop all services
+docker-compose down
+```
 
 ## 🔒 Security Considerations
 
