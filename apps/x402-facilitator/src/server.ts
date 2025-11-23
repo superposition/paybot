@@ -123,6 +123,61 @@ app.post("/payments/:paymentId/monitor", async (c) => {
   }
 });
 
+// X402 Protocol: Verify payment payload
+app.post("/verify", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { payment } = body;
+
+    if (!payment) {
+      return c.json({ error: "Missing required field: payment" }, 400);
+    }
+
+    const result = await facilitator.verifyPayment(payment);
+    return c.json(result);
+  } catch (error) {
+    console.error("Payment verification error:", error);
+    return c.json({ valid: false, error: String(error) }, 500);
+  }
+});
+
+// X402 Protocol: Settle payment on blockchain
+app.post("/settle", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { payment } = body;
+
+    if (!payment) {
+      return c.json({ error: "Missing required field: payment" }, 400);
+    }
+
+    // Get facilitator private key from environment
+    const facilitatorPrivateKey = process.env.FACILITATOR_PRIVATE_KEY as `0x${string}`;
+    if (!facilitatorPrivateKey) {
+      return c.json(
+        { error: "Facilitator private key not configured" },
+        500
+      );
+    }
+
+    const result = await facilitator.settlePayment(payment, facilitatorPrivateKey);
+
+    if (!result.settled) {
+      return c.json(result, 400);
+    }
+
+    return c.json(result);
+  } catch (error) {
+    console.error("Payment settlement error:", error);
+    return c.json({
+      txHash: "0x0",
+      paymentId: "0x0",
+      settled: false,
+      error: String(error),
+    }, 500);
+  }
+});
+
 // Start server
 console.log(`🚀 X402 Facilitator Server starting on port ${PORT}`);
 console.log(`📡 RPC URL: ${RPC_URL}`);

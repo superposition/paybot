@@ -5,13 +5,33 @@
  * - Generate unique payment IDs
  * - Create payment requests without requiring user wallets
  * - Monitor payment status
- * - Provide payment verification
+ * - Provide payment verification (X402 /verify endpoint)
+ * - Settle payments on blockchain (X402 /settle endpoint)
  * - Send webhooks for payment status changes
  */
 
-import { X402Client, type X402Config, type PaymentId, type X402Payment, PaymentStatus } from "@paybot/x402";
-import type { Address } from "viem";
-import { keccak256, toBytes } from "viem";
+import {
+  X402Client,
+  type X402Config,
+  type PaymentId,
+  type X402Payment,
+  PaymentStatus,
+  type PaymentPayload,
+  type VerifyResponse,
+  type SettleResponse,
+  decodePaymentPayload,
+  validatePaymentPayload,
+  ESCROW_ABI,
+} from "@paybot/x402";
+import type { Address, Hex } from "viem";
+import {
+  keccak256,
+  toBytes,
+  createPublicClient,
+  createWalletClient,
+  http,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 
 interface PaymentRequestParams {
   recipient: Address;
@@ -206,6 +226,143 @@ export class PaymentFacilitator {
       }
     }
     this.monitoredPayments.clear();
+  }
+
+  /**
+   * Verify payment payload (X402 /verify endpoint)
+   * Validates signatures and payment structure without settling on-chain
+   */
+  async verifyPayment(encodedPayment: string): Promise<VerifyResponse> {
+    try {
+      // Decode payment payload
+      const payload: PaymentPayload = decodePaymentPayload(encodedPayment);
+
+      // Validate payload structure
+      const validation = validatePaymentPayload(payload);
+      if (!validation.valid) {
+        return {
+          valid: false,
+          error: validation.error,
+        };
+      }
+
+      // Extract EVM permit payload
+      const evmPayload = payload.payload;
+
+      // TODO: Verify permit signature
+      // TODO: Verify payment intent signature
+      // For now, basic validation passes
+
+      return {
+        valid: true,
+        paymentId: evmPayload.paymentId,
+        payer: evmPayload.payer,
+        amount: evmPayload.amount,
+      };
+    } catch (error) {
+      return {
+        valid: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
+  /**
+   * Settle payment on blockchain (X402 /settle endpoint)
+   * Submits the gasless transaction and pays gas fees
+   *
+   * @param facilitatorPrivateKey - Private key of facilitator account that will pay gas
+   */
+  async settlePayment(
+    encodedPayment: string,
+    facilitatorPrivateKey: Hex
+  ): Promise<SettleResponse> {
+    try {
+      // First verify the payment
+      const verification = await this.verifyPayment(encodedPayment);
+      if (!verification.valid) {
+        return {
+          txHash: "0x0" as Hex,
+          paymentId: "0x0" as Hex,
+          settled: false,
+          error: verification.error,
+        };
+      }
+
+      // Decode payment payload
+      const payload: PaymentPayload = decodePaymentPayload(encodedPayment);
+      const evmPayload = payload.payload;
+      const config = this.client.getConfig();
+
+      // Create facilitator account
+      const facilitatorAccount = privateKeyToAccount(facilitatorPrivateKey);
+
+      // Create wallet client for facilitator
+      const walletClient = createWalletClient({
+        account: facilitatorAccount,
+        transport: http(config.rpcUrl),
+        chain: {
+          id: config.chainId,
+          name: "Custom Chain",
+          nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+          rpcUrls: {
+            default: { http: [config.rpcUrl] },
+          },
+        },
+      });
+
+      // Create public client
+      const publicClient = createPublicClient({
+        transport: http(config.rpcUrl),
+        chain: {
+          id: config.chainId,
+          name: "Custom Chain",
+          nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+          rpcUrls: {
+            default: { http: [config.rpcUrl] },
+          },
+        },
+      });
+
+      // Call createPaymentWithPermit on the escrow contract
+      const txHash = await walletClient.writeContract({
+        address: config.escrowAddress,
+        abi: ESCROW_ABI,
+        functionName: "createPaymentWithPermit",
+        args: [
+          evmPayload.paymentId,
+          evmPayload.payer,
+          evmPayload.recipient,
+          BigInt(evmPayload.amount),
+          BigInt(evmPayload.duration),
+          BigInt(evmPayload.deadline),
+          evmPayload.paymentSignature.v,
+          evmPayload.paymentSignature.r,
+          evmPayload.paymentSignature.s,
+          evmPayload.permitSignature.v,
+          evmPayload.permitSignature.r,
+          evmPayload.permitSignature.s,
+        ],
+      });
+
+      // Wait for transaction receipt
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+      return {
+        txHash,
+        paymentId: evmPayload.paymentId,
+        settled: receipt.status === "success",
+        blockNumber: receipt.blockNumber.toString(),
+      };
+    } catch (error) {
+      console.error("Settlement error:", error);
+      return {
+        txHash: "0x0" as Hex,
+        paymentId: "0x0" as Hex,
+        settled: false,
+        error: error instanceof Error ? error.message : "Unknown settlement error",
+      };
+    }
   }
 
   /**

@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "bun --watch src/server.ts",
     "start": "bun src/server.ts",
+    "dev:resource": "bun --watch src/example-resource-server.ts",
+    "start:resource": "bun src/example-resource-server.ts",
+    "test:client": "bun src/test-client.ts",
     "build": "bun build src/server.ts --outdir=dist --target=bun",
     "typecheck": "tsc --noEmit"
   },

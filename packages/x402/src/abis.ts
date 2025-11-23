@@ -33,6 +33,26 @@ export const ESCROW_ABI = [
     type: "function",
   },
   {
+    inputs: [
+      { name: "paymentId", type: "bytes32" },
+      { name: "payer", type: "address" },
+      { name: "recipient", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "duration", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+      { name: "v", type: "uint8" },
+      { name: "r", type: "bytes32" },
+      { name: "s", type: "bytes32" },
+      { name: "permitV", type: "uint8" },
+      { name: "permitR", type: "bytes32" },
+      { name: "permitS", type: "bytes32" },
+    ],
+    name: "createPaymentWithPermit",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [{ name: "paymentId", type: "bytes32" }],
     name: "getPayment",
     outputs: [

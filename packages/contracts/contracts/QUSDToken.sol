@@ -2,16 +2,18 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title QUSDToken - Qualia USD Stablecoin
-/// @notice ERC20 token used for X402 micropayments
-/// @dev Mintable token with owner controls
-contract QUSDToken is ERC20, Ownable {
+/// @title QUSDToken - Qualia USD Stablecoin with EIP-2612 Permit
+/// @notice ERC20 token used for X402 micropayments with gasless approval support
+/// @dev Mintable token with owner controls and EIP-2612 permit functionality
+contract QUSDToken is ERC20, ERC20Permit, Ownable {
     /// @notice Creates the QUSD token
     /// @param initialOwner Address that will own the contract and receive initial supply
     constructor(address initialOwner)
         ERC20("Qualia USD", "QUSD")
+        ERC20Permit("Qualia USD")
         Ownable(initialOwner)
     {
         // Mint initial supply of 1,000,000 QUSD to owner

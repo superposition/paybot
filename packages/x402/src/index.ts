@@ -13,5 +13,17 @@ export { X402Client } from "./client";
 // Types
 export * from "./types";
 
+// Protocol utilities
+export * from "./protocol";
+
+// Signature utilities
+export * from "./signatures";
+
+// Client helpers
+export * from "./client-helpers";
+
+// Middleware
+export * from "./middleware";
+
 // ABIs
 export { ESCROW_ABI, TOKEN_ABI } from "./abis";
