@@ -11,6 +11,7 @@
     "test:coverage": "bunx hardhat coverage",
     "deploy:local": "bun run scripts/deploy.ts",
     "node": "bunx --bun hardhat node",
+    "node:deploy": "sh scripts/start-and-deploy.sh",
     "clean": "bunx hardhat clean && rm -rf cache artifacts typechain-types deployments",
     "export": "bun run scripts/export-contracts.ts"
   },

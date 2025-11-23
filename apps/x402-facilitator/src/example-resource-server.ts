@@ -29,6 +29,7 @@ const PAY_TO_ADDRESS = (process.env.VITE_ESCROW_CONTRACT_ADDRESS ||
 const ASSET_ADDRESS = (process.env.VITE_QUSD_TOKEN_ADDRESS ||
   "0x5FbDB2315678afecb367f032d93F642f64180aa3") as `0x${string}`;
 const FACILITATOR_URL = process.env.FACILITATOR_URL || "http://localhost:8403";
+const ACTUAL_ROBOT_URL = process.env.ACTUAL_ROBOT_URL; // Optional: forward to real robot
 
 // Middleware
 app.use("*", logger());
@@ -91,20 +92,62 @@ app.post(
   x402Middleware({
     payTo: PAY_TO_ADDRESS,
     asset: ASSET_ADDRESS,
-    maxAmountRequired: "500000000000000000000", // 500 QUSD
+    maxAmountRequired: "100000000000000000000", // 100 QUSD (matches VITE_ROBOT_FULL_ACCESS_PRICE)
     network: "localhost",
-    maxTimeoutSeconds: 7200, // 2 hours
+    maxTimeoutSeconds: 3600, // 1 hour (matches VITE_DEFAULT_PAYMENT_TIMEOUT)
     facilitatorUrl: FACILITATOR_URL,
     description: "Robot control access",
   }),
   async (c) => {
     const payment = c.get("x402Payment");
     const body = await c.req.json();
+    const { command } = body;
+
+    console.log(`🤖 Robot command received: ${command} (from ${payment?.payer})`);
+
+    // Validate command
+    const validCommands = ["forward", "backward", "left", "right", "stop"];
+    if (!command || !validCommands.includes(command)) {
+      return c.json({
+        error: "Invalid command",
+        validCommands,
+        timestamp: new Date().toISOString(),
+      }, 400);
+    }
+
+    console.log(`✅ Executing robot command: ${command.toUpperCase()}`);
+
+    // If actual robot URL is configured, forward the command
+    let robotResponse = null;
+    if (ACTUAL_ROBOT_URL) {
+      try {
+        console.log(`🔄 Forwarding command to actual robot: ${ACTUAL_ROBOT_URL}`);
+        const response = await fetch(ACTUAL_ROBOT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command }),
+        });
+
+        if (response.ok) {
+          robotResponse = await response.json();
+          console.log(`✅ Robot responded:`, robotResponse);
+        } else {
+          console.error(`❌ Robot error: ${response.status}`);
+        }
+      } catch (error) {
+        console.error(`❌ Failed to forward to robot:`, error);
+      }
+    }
 
     return c.json({
-      message: "Robot control command accepted",
-      command: body,
-      payment: payment,
+      success: true,
+      message: `Robot command '${command}' executed successfully`,
+      command,
+      payment: {
+        paymentId: payment?.paymentId,
+        payer: payment?.payer,
+      },
+      robotResponse: robotResponse || "No physical robot configured",
       timestamp: new Date().toISOString(),
     });
   }
@@ -154,9 +197,9 @@ app.get("/endpoints", (c) => {
         path: "/robot/control",
         method: "POST",
         requiresPayment: true,
-        amount: "500 QUSD",
-        timeout: "2 hours",
-        description: "Robot control access",
+        amount: "100 QUSD",
+        timeout: "1 hour",
+        description: "Robot control access - commands: forward, backward, left, right, stop",
       },
       {
         path: "/test/payment-check",

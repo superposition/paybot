@@ -33,111 +33,33 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <BotAccessGate
           recipient={ROBOT_CONFIG.providerAddress}
-          amountUSD={SERVICE_PRICES.robotFullAccess}
+          serviceType="robotFullAccess"
+          endpoint={ROBOT_CONFIG.controlUrl}
+          method="robot.control"
           timeoutSeconds={X402_CONFIG.defaultTimeout}
-          serviceType="robot-control"
           botId={ROBOT_CONFIG.botId}
           botName={ROBOT_CONFIG.botName}
-          endpoint={ROBOT_CONFIG.controlUrl}
-          method="POST"
           title="Robot Access Required"
-          description={`Pay ${SERVICE_PRICES.robotFullAccess} QUSD to control ${ROBOT_CONFIG.botName} for ${Math.floor(X402_CONFIG.defaultTimeout / 60)} minutes`}
+          description={`Pay to control ${ROBOT_CONFIG.botName} for ${Math.floor(X402_CONFIG.defaultTimeout / 60)} minutes`}
           showPaymentStatus={true}
-          onPaymentCreated={(record) => {
-            console.log("Payment created:", record);
+          onPaymentSuccess={(response) => {
+            console.log("Payment success:", response);
           }}
-          onAccessGranted={(record) => {
-            console.log("Access granted! Payment ID:", record.paymentId);
-          }}
-          onAccessDenied={() => {
-            console.log("Access denied");
+          onPaymentError={(error) => {
+            console.error("Payment error:", error);
           }}
         >
           {(paymentRecord) => (
-            <div className="space-y-6">
-              {/* Robot Controls Header */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {ROBOT_CONFIG.botName} Control Panel
-                </h2>
-                <p className="text-gray-600">
-                  You have full access to control the robot. Use the controls
-                  below or view the live feed.
-                </p>
-              </div>
-
-              {/* Robot Video Feed */}
-              {ROBOT_CONFIG.controlUrl && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Live Feed
-                  </h3>
-                  <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
-                    <iframe
-                      src={ROBOT_CONFIG.controlUrl.replace("/robot/control", "")}
-                      className="w-full h-full"
-                      title="Robot Live Feed"
-                      allow="camera; microphone"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Robot Control Buttons */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Movement Controls
-                </h3>
-                <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
-                  <div></div>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-xl">
-                    ▲<br />
-                    <span className="text-sm">Forward</span>
-                  </button>
-                  <div></div>
-
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-xl">
-                    ◄<br />
-                    <span className="text-sm">Left</span>
-                  </button>
-                  <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-xl">
-                    ■<br />
-                    <span className="text-sm">Stop</span>
-                  </button>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-xl">
-                    ►<br />
-                    <span className="text-sm">Right</span>
-                  </button>
-
-                  <div></div>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors shadow-lg hover:shadow-xl">
-                    ▼<br />
-                    <span className="text-sm">Backward</span>
-                  </button>
-                  <div></div>
-                </div>
-              </div>
-
-              {/* Payment Info */}
-              {paymentRecord && (
-                <div className="bg-gray-50 rounded-lg p-4 text-sm font-mono text-gray-600">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="font-semibold">Payment ID:</span>
-                      <br />
-                      {paymentRecord.paymentId.slice(0, 10)}...
-                      {paymentRecord.paymentId.slice(-8)}
-                    </div>
-                    <div>
-                      <span className="font-semibold">Status:</span>
-                      <br />
-                      <span className="text-green-600 uppercase">
-                        {paymentRecord.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="h-[calc(100vh-200px)]">
+              <iframe
+                className="rounded-md border border-gray-300"
+                width="100%"
+                height="100%"
+                src="http://192.168.0.221:5000"
+                title={`${ROBOT_CONFIG.botName} - Robot Control Interface`}
+                allow="cross-origin-isolated; fullscreen; camera; microphone"
+                sandbox="allow-same-origin allow-scripts allow-forms"
+              />
             </div>
           )}
         </BotAccessGate>

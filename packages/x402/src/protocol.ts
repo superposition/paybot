@@ -130,19 +130,32 @@ export interface SettleResponse {
 }
 
 /**
- * Encode payment payload to base64
+ * Encode payment payload to base64 (browser-compatible)
  */
 export function encodePaymentPayload(payload: PaymentPayload): string {
   const json = JSON.stringify(payload);
-  return Buffer.from(json).toString("base64");
+  // Use browser-compatible base64 encoding
+  if (typeof globalThis.btoa !== 'undefined') {
+    return globalThis.btoa(json);
+  } else {
+    // Node.js environment
+    return Buffer.from(json).toString("base64");
+  }
 }
 
 /**
- * Decode payment payload from base64
+ * Decode payment payload from base64 (browser-compatible)
  */
 export function decodePaymentPayload(encoded: string): PaymentPayload {
-  const json = Buffer.from(encoded, "base64").toString("utf8");
-  return JSON.parse(json);
+  // Use browser-compatible base64 decoding
+  if (typeof globalThis.atob !== 'undefined') {
+    const json = globalThis.atob(encoded);
+    return JSON.parse(json);
+  } else {
+    // Node.js environment
+    const json = Buffer.from(encoded, "base64").toString("utf8");
+    return JSON.parse(json);
+  }
 }
 
 /**

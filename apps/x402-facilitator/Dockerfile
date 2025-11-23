@@ -1,7 +1,10 @@
 # X402 Facilitator Dockerfile
-FROM oven/bun:1.3-alpine
+FROM oven/bun:1-alpine
 
 WORKDIR /app
+
+# Install wget for healthchecks
+RUN apk add --no-cache wget
 
 # Copy root package files
 COPY package.json bun.lock ./
@@ -35,7 +38,7 @@ WORKDIR /app/apps/x402-facilitator
 
 # Health check for facilitator
 HEALTHCHECK --interval=10s --timeout=3s --retries=5 --start-period=20s \
-  CMD curl -f http://localhost:8403/health || exit 1
+  CMD wget --spider -q http://localhost:8403/health || exit 1
 
 # Default: start facilitator (can be overridden with command)
 CMD ["bun", "run", "start"]

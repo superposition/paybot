@@ -62,3 +62,14 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer utilities {
+  .bg-primary-50 { background-color: hsl(221.2 83.2% 95%); }
+  .bg-primary-100 { background-color: hsl(221.2 83.2% 90%); }
+  .bg-primary-600 { background-color: hsl(221.2 83.2% 53.3%); }
+  .bg-primary-700 { background-color: hsl(221.2 83.2% 43.3%); }
+  .text-primary-500 { color: hsl(221.2 83.2% 58.3%); }
+  .text-primary-600 { color: hsl(221.2 83.2% 53.3%); }
+  .ring-primary-500 { --tw-ring-color: hsl(221.2 83.2% 58.3%); }
+  .border-primary-200 { border-color: hsl(221.2 83.2% 85%); }
+}

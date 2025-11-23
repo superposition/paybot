@@ -144,31 +144,45 @@ app.post("/verify", async (c) => {
 // X402 Protocol: Settle payment on blockchain
 app.post("/settle", async (c) => {
   try {
+    console.log("📥 [SETTLE] Received settlement request");
     const body = await c.req.json();
     const { payment } = body;
 
     if (!payment) {
+      console.error("❌ [SETTLE] Missing payment field in request");
       return c.json({ error: "Missing required field: payment" }, 400);
     }
+
+    console.log("📋 [SETTLE] Payment payload (base64):", payment.slice(0, 50) + "...");
 
     // Get facilitator private key from environment
     const facilitatorPrivateKey = process.env.FACILITATOR_PRIVATE_KEY as `0x${string}`;
     if (!facilitatorPrivateKey) {
+      console.error("❌ [SETTLE] Facilitator private key not configured");
       return c.json(
         { error: "Facilitator private key not configured" },
         500
       );
     }
 
+    console.log("🔐 [SETTLE] Facilitator private key configured");
+    console.log("⚙️  [SETTLE] Starting payment settlement on blockchain...");
+
     const result = await facilitator.settlePayment(payment, facilitatorPrivateKey);
 
     if (!result.settled) {
+      console.error("❌ [SETTLE] Settlement failed:", result.error);
       return c.json(result, 400);
     }
 
+    console.log("✅ [SETTLE] Payment settled successfully!");
+    console.log("   Payment ID:", result.paymentId);
+    console.log("   TX Hash:", result.txHash);
+    console.log("   Block:", result.blockNumber);
+
     return c.json(result);
   } catch (error) {
-    console.error("Payment settlement error:", error);
+    console.error("❌ [SETTLE] Payment settlement error:", error);
     return c.json({
       txHash: "0x0",
       paymentId: "0x0",

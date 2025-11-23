@@ -20,9 +20,13 @@ export const X402_ENDPOINTS = {
   provider: import.meta.env.VITE_RPC_URL as string,
 } as const;
 
-// Service pricing (in QUSD, will be converted to wei)
+// Service pricing (in QUSD wei - 1 QUSD = 10^18 wei)
 export const SERVICE_PRICES = {
-  robotFullAccess: Number(import.meta.env.VITE_ROBOT_FULL_ACCESS_PRICE || "100"), // 100 QUSD
+  chat: "1000000000000000000", // 1 QUSD
+  video: "5000000000000000000", // 5 QUSD
+  data: "10000000000000000000", // 10 QUSD
+  robotControl: "50000000000000000000", // 50 QUSD
+  robotFullAccess: "100000000000000000000", // 100 QUSD
 } as const;
 
 // X402 protocol configuration
@@ -30,7 +34,18 @@ export const X402_CONFIG = {
   chainId: Number(import.meta.env.VITE_CHAIN_ID),
   defaultTimeout: Number(import.meta.env.VITE_DEFAULT_PAYMENT_TIMEOUT || "3600"), // 1 hour default
   tokenName: "Qualia USD",
+  requestTimeout: 60000, // 60 seconds for RPC requests
 } as const;
+
+// Helper functions
+export function calculateTimeout(seconds: number): number {
+  return Math.floor(Date.now() / 1000) + seconds;
+}
+
+export function formatQusd(wei: string): string {
+  const qusd = BigInt(wei) / BigInt(10 ** 18);
+  return `${qusd} QUSD`;
+}
 
 // Robot configuration
 export const ROBOT_CONFIG = {

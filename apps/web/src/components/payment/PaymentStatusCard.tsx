@@ -1,214 +1,536 @@
-/**
- * PaymentStatusCard Component
- *
- * Displays current payment status with countdown timer
- */
-
-import { useState, useEffect } from "react";
-
-export type PaymentStatus = "pending" | "confirmed" | "expired" | "refunded";
+import React from 'react';
+import { type Address, type Hash } from 'viem';
+import { CountdownTimer } from '../ui/CountdownTimer';
+import { formatQusd } from '../../config/x402';
 
 export interface PaymentStatusCardProps {
-  paymentId: `0x${string}`;
-  status: PaymentStatus;
-  amount: string; // Amount in QUSD
-  payer?: `0x${string}`;
-  recipient?: `0x${string}`;
-  expiresAt?: number; // Unix timestamp
-  txHash?: `0x${string}`;
-  onRefresh?: () => void;
+  /**
+   * Payment status
+   */
+  status: 'pending' | 'locked' | 'completed' | 'released' | 'refunded' | 'expired' | 'failed';
+  /**
+   * Service provider address
+   */
+  recipient: Address;
+  /**
+   * Payment amount in wei
+   */
+  amount: string;
+  /**
+   * Service type
+   */
+  serviceType?: string;
+  /**
+   * Transaction hash (if available)
+   */
+  txHash?: Hash;
+  /**
+   * Payment timeout unix timestamp
+   */
+  timeoutTimestamp?: number;
+  /**
+   * Total timeout duration (for progress bar)
+   */
+  totalDuration?: number;
+  /**
+   * Request ID
+   */
+  requestId?: string;
+  /**
+   * Error message (for failed payments)
+   */
+  error?: string;
+  /**
+   * Show countdown timer
+   */
+  showTimer?: boolean;
+  /**
+   * Card variant
+   */
+  variant?: 'compact' | 'detailed';
+  /**
+   * Header style variant
+   */
+  headerVariant?: 'minimal' | 'standard' | 'detailed';
+  /**
+   * Layout variant (v1, v2, v3)
+   */
+  layoutVariant?: 'v1' | 'v2' | 'v3';
+  /**
+   * Callback when countdown completes
+   */
+  onTimeout?: () => void;
+  /**
+   * Optional CSS classes
+   */
+  className?: string;
 }
 
-export function PaymentStatusCard({
-  paymentId,
+const statusConfig = {
+  pending: {
+    color: 'bg-gray-900 border-gray-400',
+    textColor: 'text-gray-100',
+    accentColor: 'text-gray-400',
+    icon: '○',
+    label: 'PENDING',
+  },
+  locked: {
+    color: 'bg-blue-950 border-blue-400',
+    textColor: 'text-blue-100',
+    accentColor: 'text-blue-400',
+    icon: '🔒',
+    label: 'LOCKED',
+  },
+  completed: {
+    color: 'bg-green-950 border-green-400',
+    textColor: 'text-green-100',
+    accentColor: 'text-green-400',
+    icon: '✓',
+    label: 'COMPLETED',
+  },
+  released: {
+    color: 'bg-green-950 border-green-400',
+    textColor: 'text-green-100',
+    accentColor: 'text-green-400',
+    icon: '✓',
+    label: 'RELEASED',
+  },
+  refunded: {
+    color: 'bg-amber-950 border-amber-400',
+    textColor: 'text-amber-100',
+    accentColor: 'text-amber-400',
+    icon: '↶',
+    label: 'REFUNDED',
+  },
+  expired: {
+    color: 'bg-orange-950 border-orange-400',
+    textColor: 'text-orange-100',
+    accentColor: 'text-orange-400',
+    icon: '⏱',
+    label: 'EXPIRED',
+  },
+  failed: {
+    color: 'bg-red-950 border-red-400',
+    textColor: 'text-red-100',
+    accentColor: 'text-red-400',
+    icon: '✕',
+    label: 'FAILED',
+  },
+};
+
+/**
+ * PaymentStatusCard - Display payment status with countdown timer
+ *
+ * Features:
+ * - Visual status indicators
+ * - Real-time countdown timer
+ * - Transaction details
+ * - Progress tracking
+ * - Compact & detailed variants
+ */
+export const PaymentStatusCard: React.FC<PaymentStatusCardProps> = ({
   status,
-  amount,
-  payer,
   recipient,
-  expiresAt,
+  amount,
+  serviceType,
   txHash,
-  onRefresh,
-}: PaymentStatusCardProps) {
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
-
-  // Calculate time remaining
-  useEffect(() => {
-    if (!expiresAt) return;
-
-    const updateTimer = () => {
-      const now = Math.floor(Date.now() / 1000);
-      const remaining = Math.max(0, expiresAt - now);
-      setTimeRemaining(remaining);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-
-    return () => clearInterval(interval);
-  }, [expiresAt]);
-
-  const formatTime = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${secs}s`;
-    }
-    if (minutes > 0) {
-      return `${minutes}m ${secs}s`;
-    }
-    return `${secs}s`;
-  };
-
-  const statusConfig = {
-    pending: {
-      bg: "bg-yellow-50",
-      border: "border-yellow-200",
-      text: "text-yellow-800",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      label: "Pending",
-    },
-    confirmed: {
-      bg: "bg-green-50",
-      border: "border-green-200",
-      text: "text-green-800",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      ),
-      label: "Confirmed",
-    },
-    expired: {
-      bg: "bg-red-50",
-      border: "border-red-200",
-      text: "text-red-800",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      label: "Expired",
-    },
-    refunded: {
-      bg: "bg-gray-50",
-      border: "border-gray-200",
-      text: "text-gray-800",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-        </svg>
-      ),
-      label: "Refunded",
-    },
-  };
-
+  timeoutTimestamp,
+  totalDuration,
+  requestId,
+  error,
+  showTimer = true,
+  variant = 'detailed',
+  headerVariant = 'standard',
+  layoutVariant = 'v1',
+  onTimeout,
+  className = '',
+}) => {
   const config = statusConfig[status];
+  const isActive = status === 'locked' || status === 'pending';
 
-  return (
-    <div className={`${config.bg} ${config.border} border-2 rounded-lg p-6 shadow-sm`}>
-      {/* Status Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className={config.text}>{config.icon}</div>
-          <h3 className={`text-lg font-semibold ${config.text}`}>{config.label}</h3>
-        </div>
-        {onRefresh && (
-          <button
-            onClick={onRefresh}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
-            aria-label="Refresh"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {/* Payment Amount */}
-      <div className="mb-4">
-        <div className="text-3xl font-bold text-gray-900">{amount} QUSD</div>
-      </div>
-
-      {/* Payment Details */}
-      <div className="space-y-2 mb-4">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Payment ID</span>
-          <span className="font-mono text-gray-900">
-            {paymentId.slice(0, 6)}...{paymentId.slice(-4)}
-          </span>
-        </div>
-
-        {payer && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">From</span>
-            <span className="font-mono text-gray-900">
-              {payer.slice(0, 6)}...{payer.slice(-4)}
-            </span>
+  // v1 - Compact Terminal Layout
+  if (layoutVariant === 'v1') {
+    return (
+      <div
+        className={`border-2 ${config.color} p-3 ${className}`}
+        style={{ fontFamily: 'Consolas, monospace' }}
+      >
+        {/* Header Row */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className={`text-lg ${config.accentColor}`}>{config.icon}</span>
+            <span className={`text-xs font-bold ${config.textColor}`}>{config.label}</span>
           </div>
-        )}
+          {requestId && (
+            <span className={`text-xs ${config.accentColor} opacity-50`}>
+              {requestId.slice(0, 8)}
+            </span>
+          )}
+        </div>
 
-        {recipient && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">To</span>
-            <span className="font-mono text-gray-900">
+        {/* Main Info */}
+        <div className="space-y-1.5">
+          <div className="flex justify-between items-center">
+            <span className={`text-xs ${config.accentColor} opacity-50`}>AMOUNT</span>
+            <span className={`text-sm font-bold ${config.textColor}`}>{formatQusd(amount)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className={`text-xs ${config.accentColor} opacity-50`}>TO</span>
+            <span className={`text-xs ${config.textColor}`}>
               {recipient.slice(0, 6)}...{recipient.slice(-4)}
             </span>
           </div>
+          {txHash && (
+            <div className="flex justify-between items-center">
+              <span className={`text-xs ${config.accentColor} opacity-50`}>TX</span>
+              <a
+                href={`https://etherscan.io/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`text-xs ${config.accentColor} hover:underline`}
+              >
+                {txHash.slice(0, 6)}...{txHash.slice(-4)}
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Timer */}
+        {showTimer && timeoutTimestamp && isActive && totalDuration && (
+          <div className="mt-2 pt-2 border-t border-current opacity-30">
+            <CountdownTimer
+              endTime={timeoutTimestamp}
+              totalDuration={totalDuration}
+              showProgressBar={true}
+              size="sm"
+              format="MM:SS"
+              {...(onTimeout && { onComplete: onTimeout })}
+            />
+          </div>
         )}
 
+        {/* Error */}
+        {error && (
+          <div className={`mt-2 pt-2 border-t ${config.accentColor} border-opacity-30`}>
+            <div className={`text-xs ${config.accentColor}`}>{error}</div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // v2 - Grid Layout
+  if (layoutVariant === 'v2') {
+    return (
+      <div
+        className={`border-2 ${config.color} ${className}`}
+        style={{ fontFamily: 'Consolas, monospace' }}
+      >
+        {/* Header */}
+        <div className="px-3 py-2 border-b-2 border-current opacity-30 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className={`text-xl ${config.accentColor}`}>{config.icon}</span>
+            <span className={`text-sm font-bold ${config.textColor}`}>{config.label}</span>
+          </div>
+          {serviceType && (
+            <span className={`text-xs ${config.accentColor} uppercase`}>{serviceType}</span>
+          )}
+        </div>
+
+        {/* Grid Content */}
+        <div className="p-3 grid grid-cols-2 gap-3">
+          <div>
+            <div className={`text-xs ${config.accentColor} opacity-50 mb-1`}>AMOUNT</div>
+            <div className={`text-sm font-bold ${config.textColor}`}>{formatQusd(amount)}</div>
+          </div>
+          <div>
+            <div className={`text-xs ${config.accentColor} opacity-50 mb-1`}>RECIPIENT</div>
+            <div className={`text-xs ${config.textColor}`}>
+              {recipient.slice(0, 6)}...{recipient.slice(-4)}
+            </div>
+          </div>
+          {txHash && (
+            <div className="col-span-2">
+              <div className={`text-xs ${config.accentColor} opacity-50 mb-1`}>TRANSACTION</div>
+              <a
+                href={`https://etherscan.io/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`text-xs ${config.accentColor} hover:underline`}
+              >
+                {txHash.slice(0, 10)}...{txHash.slice(-8)}
+              </a>
+            </div>
+          )}
+          {requestId && (
+            <div className="col-span-2">
+              <div className={`text-xs ${config.accentColor} opacity-50 mb-1`}>REQUEST ID</div>
+              <div className={`text-xs ${config.textColor}`}>{requestId}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Timer */}
+        {showTimer && timeoutTimestamp && isActive && totalDuration && (
+          <div className="px-3 py-2 border-t-2 border-current opacity-30">
+            <div className={`text-xs ${config.accentColor} opacity-50 mb-1`}>TIME REMAINING</div>
+            <CountdownTimer
+              endTime={timeoutTimestamp}
+              totalDuration={totalDuration}
+              showProgressBar={true}
+              size="md"
+              format="MM:SS"
+              {...(onTimeout && { onComplete: onTimeout })}
+            />
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="px-3 py-2 border-t-2 border-current opacity-30">
+            <div className={`text-xs ${config.accentColor} opacity-50 mb-1`}>ERROR</div>
+            <div className={`text-xs ${config.textColor}`}>{error}</div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // v3 - Horizontal Bar Layout
+  if (layoutVariant === 'v3') {
+    return (
+      <div
+        className={`border-2 ${config.color} ${className}`}
+        style={{ fontFamily: 'Consolas, monospace' }}
+      >
+        {/* Single Row Layout */}
+        <div className="p-3 flex items-center justify-between gap-4">
+          {/* Status */}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={`text-lg ${config.accentColor}`}>{config.icon}</span>
+            <div className="min-w-0">
+              <div className={`text-xs font-bold ${config.textColor}`}>{config.label}</div>
+              {serviceType && (
+                <div className={`text-xs ${config.accentColor} opacity-50`}>{serviceType}</div>
+              )}
+            </div>
+          </div>
+
+          {/* Amount */}
+          <div className="flex-shrink-0">
+            <div className={`text-xs ${config.accentColor} opacity-50`}>AMOUNT</div>
+            <div className={`text-sm font-bold ${config.textColor}`}>{formatQusd(amount)}</div>
+          </div>
+
+          {/* Recipient */}
+          <div className="flex-shrink-0">
+            <div className={`text-xs ${config.accentColor} opacity-50`}>TO</div>
+            <div className={`text-xs ${config.textColor}`}>
+              {recipient.slice(0, 6)}...{recipient.slice(-4)}
+            </div>
+          </div>
+
+          {/* Timer or Status */}
+          {showTimer && timeoutTimestamp && isActive && totalDuration ? (
+            <div className="flex-shrink-0">
+              <CountdownTimer
+                endTime={timeoutTimestamp}
+                totalDuration={totalDuration}
+                showProgressBar={false}
+                size="sm"
+                format="MM:SS"
+                {...(onTimeout && { onComplete: onTimeout })}
+              />
+            </div>
+          ) : (
+            requestId && (
+              <div className="flex-shrink-0">
+                <div className={`text-xs ${config.accentColor} opacity-50`}>REQ</div>
+                <div className={`text-xs ${config.textColor}`}>{requestId.slice(0, 8)}</div>
+              </div>
+            )
+          )}
+        </div>
+
+        {/* Progress Bar */}
+        {showTimer && timeoutTimestamp && isActive && totalDuration && (
+          <div className="px-3 pb-2">
+            <CountdownTimer
+              endTime={timeoutTimestamp}
+              totalDuration={totalDuration}
+              showProgressBar={true}
+              size="sm"
+              format="MM:SS"
+              {...(onTimeout && { onComplete: onTimeout })}
+            />
+          </div>
+        )}
+
+        {/* Expanded Info */}
+        {(txHash || error) && (
+          <div className="px-3 py-2 border-t-2 border-current opacity-30 space-y-1">
+            {txHash && (
+              <div className="flex justify-between items-center">
+                <span className={`text-xs ${config.accentColor} opacity-50`}>TX</span>
+                <a
+                  href={`https://etherscan.io/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`text-xs ${config.accentColor} hover:underline`}
+                >
+                  {txHash.slice(0, 10)}...{txHash.slice(-8)}
+                </a>
+              </div>
+            )}
+            {error && (
+              <div className={`text-xs ${config.accentColor}`}>{error}</div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback to old variant for backwards compatibility
+  if (variant === 'compact') {
+    return (
+      <div
+        className={`flex items-center justify-between p-4 rounded-lg border-2 ${config.color} ${className}`}
+        style={{ fontFamily: 'Consolas, monospace' }}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`text-2xl ${config.textColor}`}>{config.icon}</div>
+          <div>
+            <div className={`font-semibold ${config.textColor}`}>{config.label}</div>
+            <div className={`text-sm ${config.accentColor}`}>{formatQusd(amount)}</div>
+          </div>
+        </div>
+        {showTimer && timeoutTimestamp && isActive && (
+          <div className="text-right">
+            <CountdownTimer
+              endTime={timeoutTimestamp}
+              {...(totalDuration && { totalDuration })}
+              size="sm"
+              format="MM:SS"
+              showProgressBar={false}
+              {...(onTimeout && { onComplete: onTimeout })}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`rounded-lg border-2 ${config.color} overflow-hidden ${className}`}>
+      {headerVariant === 'minimal' && (
+        <div className={`p-3 bg-black border-b ${config.accentColor} border-opacity-30`}>
+          <div className="flex items-center gap-2">
+            <div className={`text-xl ${config.textColor}`}>{config.icon}</div>
+            <h3 className={`text-base font-semibold ${config.textColor}`}>{config.label}</h3>
+          </div>
+        </div>
+      )}
+
+      {headerVariant === 'standard' && (
+        <div className="p-4 bg-black border-b border-gray-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`text-2xl ${config.textColor}`}>{config.icon}</div>
+              <h3 className={`text-lg font-bold ${config.textColor}`}>{config.label}</h3>
+            </div>
+            {requestId && (
+              <div className={`font-mono text-xs ${config.accentColor} opacity-50`}>
+                {requestId.slice(0, 8)}...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {headerVariant === 'detailed' && (
+        <div className="p-4 bg-black border-b border-gray-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`text-3xl ${config.textColor}`}>{config.icon}</div>
+              <div>
+                <h3 className={`text-lg font-bold ${config.textColor}`}>{config.label}</h3>
+                {serviceType && (
+                  <p className={`text-sm ${config.accentColor}`}>Service: {serviceType}</p>
+                )}
+              </div>
+            </div>
+            {requestId && (
+              <div className="text-right">
+                <div className={`text-xs ${config.accentColor} opacity-50`}>Request ID</div>
+                <div className={`font-mono text-sm ${config.textColor}`}>
+                  {requestId.slice(0, 8)}...{requestId.slice(-6)}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="p-4 space-y-3 bg-black">
+        <div className="flex justify-between items-center">
+          <span className={`${config.accentColor} font-medium`}>Amount:</span>
+          <span className={`text-xl font-bold ${config.textColor}`}>{formatQusd(amount)}</span>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <span className={`${config.accentColor} font-medium`}>Recipient:</span>
+          <span className={`font-mono text-sm ${config.textColor}`}>
+            {recipient.slice(0, 6)}...{recipient.slice(-4)}
+          </span>
+        </div>
+
         {txHash && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Transaction</span>
+          <div className="flex justify-between items-center">
+            <span className={`${config.accentColor} font-medium`}>Tx Hash:</span>
             <a
               href={`https://etherscan.io/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-blue-600 hover:text-blue-800"
+              className={`font-mono text-sm ${config.accentColor} hover:underline`}
             >
               {txHash.slice(0, 6)}...{txHash.slice(-4)}
             </a>
           </div>
         )}
+
+        {error && (
+          <div className={`p-3 bg-red-950 border ${config.accentColor} border-opacity-30 rounded`}>
+            <div className={`text-sm font-medium ${config.textColor}`}>Error</div>
+            <div className={`text-sm ${config.accentColor} mt-1`}>{error}</div>
+          </div>
+        )}
       </div>
 
-      {/* Countdown Timer */}
-      {status === "pending" && expiresAt && timeRemaining > 0 && (
-        <div className="bg-white bg-opacity-50 rounded-lg p-3 border border-yellow-300">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-700">Time Remaining</span>
-            <span className="text-lg font-mono font-semibold text-yellow-800">
-              {formatTime(timeRemaining)}
-            </span>
-          </div>
-          <div className="mt-2 bg-yellow-200 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-yellow-500 h-full transition-all duration-1000"
-              style={{
-                width: `${(timeRemaining / ((expiresAt - Math.floor(Date.now() / 1000)) + timeRemaining)) * 100}%`,
-              }}
-            />
-          </div>
+      {showTimer && timeoutTimestamp && isActive && totalDuration && (
+        <div className="p-4 bg-black border-t border-gray-600">
+          <div className={`text-sm ${config.accentColor} mb-2 font-medium`}>Time Remaining:</div>
+          <CountdownTimer
+            endTime={timeoutTimestamp}
+            totalDuration={totalDuration}
+            showProgressBar={true}
+            size="lg"
+            format="MM:SS"
+            warningThreshold={60}
+            {...(onTimeout && { onComplete: onTimeout })}
+          />
         </div>
       )}
 
-      {/* Expired Timer */}
-      {status === "pending" && expiresAt && timeRemaining === 0 && (
-        <div className="bg-red-100 rounded-lg p-3 border border-red-300">
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-sm font-semibold text-red-800">Payment Expired</span>
-          </div>
+      {!isActive && (
+        <div className={`p-3 text-center text-sm font-medium ${config.textColor} ${config.color}`}>
+          {status === 'completed' && 'Payment successfully processed'}
+          {status === 'released' && 'Funds have been released to recipient'}
+          {status === 'refunded' && 'Payment has been refunded'}
+          {status === 'expired' && 'Payment timeout has expired'}
+          {status === 'failed' && 'Payment transaction failed'}
         </div>
       )}
     </div>
   );
-}
+};
