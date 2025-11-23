@@ -14,15 +14,15 @@
   },
   "dependencies": {
     "@paybot/x402": "workspace:*",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "viem": "^2.21.53",
-    "wagmi": "^2.12.23",
+    "@radix-ui/react-slot": "^1.2.4",
     "@tanstack/react-query": "^5.62.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tailwind-merge": "^2.6.0",
-    "@radix-ui/react-slot": "^1.1.1"
+    "viem": "^2.21.53",
+    "wagmi": "^2.12.23"
   },
   "devDependencies": {
     "@paybot/tsconfig": "workspace:*",
