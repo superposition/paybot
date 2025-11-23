@@ -33,13 +33,13 @@ step() {
 # Print success
 success() {
     echo -e "${GREEN}✓${NC} $1"
-    ((TESTS_PASSED++))
+    ((++TESTS_PASSED))
 }
 
 # Print error
 error() {
     echo -e "${RED}✗${NC} $1"
-    ((TESTS_FAILED++))
+    ((++TESTS_FAILED))
 }
 
 # Wait for service to be healthy

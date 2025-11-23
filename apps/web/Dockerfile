@@ -1,7 +1,10 @@
 # Web Frontend Dockerfile (Multi-stage)
-FROM oven/bun:1.3-alpine AS base
+FROM oven/bun:1-alpine AS base
 
 WORKDIR /app
+
+# Install wget for healthchecks
+RUN apk add --no-cache wget
 
 # Copy root package files
 COPY package.json bun.lock ./
@@ -44,12 +47,13 @@ WORKDIR /app/apps/web
 RUN bun run build
 
 # Production stage
-FROM oven/bun:1.3-alpine AS production
+FROM oven/bun:1-alpine AS production
 
 WORKDIR /app
 
-# Install serve for static file serving
-RUN bun add -g serve
+# Install wget for healthchecks and serve for static file serving
+RUN apk add --no-cache wget && \
+    bun add -g serve
 
 # Copy built files from builder
 COPY --from=builder /app/apps/web/dist ./dist

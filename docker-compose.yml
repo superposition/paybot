@@ -20,7 +20,8 @@ services:
     volumes:
       - contracts-data:/app/packages/contracts/deployments
       - ./packages/contracts/artifacts:/app/packages/contracts/artifacts
-    command: bun run node
+      - contract-exports:/app/apps/web/src/contracts
+    command: bun run node:deploy
 
   # X402 Facilitator (payment verification and settlement)
   x402-facilitator:
@@ -64,6 +65,7 @@ services:
       - VITE_QUSD_TOKEN_ADDRESS=${QUSD_TOKEN_ADDRESS}
       - VITE_ESCROW_CONTRACT_ADDRESS=${ESCROW_CONTRACT_ADDRESS}
       - FACILITATOR_URL=http://x402-facilitator:8403
+      - ACTUAL_ROBOT_URL=${ACTUAL_ROBOT_URL}
     networks:
       - paybot-network
     depends_on:
@@ -95,7 +97,7 @@ services:
       - VITE_BOT_SERVER_URL=http://localhost:${RESOURCE_SERVER_PORT:-8404}
       - VITE_BACKEND_URL=http://localhost:3000
       - VITE_ROBOT_CONTROL_URL=${VITE_ROBOT_CONTROL_URL}
-      - VITE_ROBOT_PROVIDER_ADDRESS=${VITE_ROBOT_SERVICE_PROVIDER_ADDRESS}
+      - VITE_ROBOT_PROVIDER_ADDRESS=${VITE_ROBOT_PROVIDER_ADDRESS}
       - VITE_ROBOT_BOT_ID=${VITE_BOT_ID:-bot-001}
       - VITE_ROBOT_BOT_NAME=${VITE_BOT_NAME:-PayBot Demo}
       - VITE_ROBOT_FULL_ACCESS_PRICE=100
@@ -109,6 +111,7 @@ services:
     volumes:
       - ./apps/web:/app/apps/web
       - ./packages:/app/packages
+      - contract-exports:/app/apps/web/src/contracts:ro
       - /app/node_modules
       - /app/apps/web/node_modules
     stdin_open: true
@@ -122,3 +125,5 @@ networks:
 volumes:
   contracts-data:
     name: paybot-contracts-data
+  contract-exports:
+    name: paybot-contract-exports

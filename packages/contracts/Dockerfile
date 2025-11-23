@@ -1,7 +1,10 @@
 # Hardhat Node Dockerfile
-FROM oven/bun:1.3-alpine
+FROM oven/bun:1-alpine
 
 WORKDIR /app
+
+# Install wget for healthchecks
+RUN apk add --no-cache wget
 
 # Copy root package files
 COPY package.json bun.lock ./
@@ -22,7 +25,7 @@ WORKDIR /app/packages/contracts
 
 # Health check
 HEALTHCHECK --interval=5s --timeout=3s --retries=10 --start-period=10s \
-  CMD curl -f http://localhost:8545 || exit 1
+  CMD wget --spider -q http://localhost:8545 || exit 1
 
 # Start Hardhat node
 CMD ["bun", "run", "node"]

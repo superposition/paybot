@@ -278,9 +278,11 @@ export class PaymentFacilitator {
     facilitatorPrivateKey: Hex
   ): Promise<SettleResponse> {
     try {
+      console.log("🔍 [FACILITATOR] Verifying payment payload...");
       // First verify the payment
       const verification = await this.verifyPayment(encodedPayment);
       if (!verification.valid) {
+        console.error("❌ [FACILITATOR] Payment verification failed:", verification.error);
         return {
           txHash: "0x0" as Hex,
           paymentId: "0x0" as Hex,
@@ -289,10 +291,19 @@ export class PaymentFacilitator {
         };
       }
 
+      console.log("✅ [FACILITATOR] Payment verified successfully");
+      console.log("   Payer:", verification.payer);
+      console.log("   Amount:", verification.amount);
+
       // Decode payment payload
       const payload: PaymentPayload = decodePaymentPayload(encodedPayment);
       const evmPayload = payload.payload;
       const config = this.client.getConfig();
+
+      console.log("📝 [FACILITATOR] Payment details:");
+      console.log("   Payment ID:", evmPayload.paymentId);
+      console.log("   Recipient:", evmPayload.recipient);
+      console.log("   Duration:", evmPayload.duration, "seconds");
 
       // Create facilitator account
       const facilitatorAccount = privateKeyToAccount(facilitatorPrivateKey);
@@ -324,6 +335,10 @@ export class PaymentFacilitator {
         },
       });
 
+      console.log("🔗 [FACILITATOR] Calling escrow contract...");
+      console.log("   Escrow address:", config.escrowAddress);
+      console.log("   Facilitator address:", facilitatorAccount.address);
+
       // Call createPaymentWithPermit on the escrow contract
       const txHash = await walletClient.writeContract({
         address: config.escrowAddress,
@@ -345,8 +360,16 @@ export class PaymentFacilitator {
         ],
       });
 
+      console.log("📤 [FACILITATOR] Transaction submitted:", txHash);
+      console.log("⏳ [FACILITATOR] Waiting for transaction confirmation...");
+
       // Wait for transaction receipt
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+      console.log("✅ [FACILITATOR] Transaction confirmed!");
+      console.log("   Status:", receipt.status);
+      console.log("   Block number:", receipt.blockNumber);
+      console.log("   Gas used:", receipt.gasUsed);
 
       return {
         txHash,
